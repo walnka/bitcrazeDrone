@@ -22,16 +22,15 @@ def posOut( scf, lg_stab):
             data.append(datai)
         return data
 
-
-
+log_conf = LogConfig(name='Position', period_in_ms=50)
+log_conf.add_variable('kalman.stateX', 'float')
+log_conf.add_variable('kalman.stateY', 'float')
+log_conf.add_variable('kalman.stateZ', 'float')
 print(1)
 cflib.crtp.init_drivers()
 with SyncCrazyflie(track, cf=Crazyflie(rw_cache='./cache')) as tscf:
     print(4)
-    log_conf = LogConfig(name='Position', period_in_ms=50)
-    log_conf.add_variable('kalman.stateX', 'float')
-    log_conf.add_variable('kalman.stateY', 'float')
-    log_conf.add_variable('kalman.stateZ', 'float')
+    
     with SyncLogger(tscf,log_conf) as logger:
         with SyncCrazyflie(fly, cf=Crazyflie(rw_cache='./cache')) as fscf:
             print(2)
