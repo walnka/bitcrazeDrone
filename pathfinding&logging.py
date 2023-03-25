@@ -86,7 +86,7 @@ def pursue(pc, fdata, tdata):
         Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
     else:
         Tar_pos=Final_pos
-    gotoLoc(pc,Tar_pos, T_yaw, 1)
+    gotoLoc(pc,Tar_pos, T_yaw, 0.5)
 
 # Function to go to location, used in pursuer and tracker
 def gotoLoc(pc,pos,yaw,v):
@@ -96,7 +96,7 @@ def gotoLoc(pc,pos,yaw,v):
     z = Tar_pos[2]
     # print(Tar_pos)
     # print(Tar_yaw)
-    pc.go_to(x,y,z,yaw, v)
+    pc.go_to(x,y,z,yaw,v)
 
 
 if __name__ == '__main__':
