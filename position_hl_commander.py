@@ -47,7 +47,7 @@ class PositionHlCommander:
     DEFAULT = None
 
     def __init__(self, crazyflie,
-                 x=0.0, y=0.0, z=0.0,
+                 x=0.0, y=0.0, z=0.0, yaw=0.0,
                  default_velocity=0.5,
                  default_height=0.5,
                  controller=None,
@@ -79,6 +79,7 @@ class PositionHlCommander:
         self._x = x
         self._y = y
         self._z = z
+        self._yaw = yaw
 
         self._is_flying = False
 
@@ -226,7 +227,7 @@ class PositionHlCommander:
 
         self.go_to(x, y, z, velocity)
 
-    def go_to(self, x, y, z=DEFAULT, velocity=DEFAULT):
+    def go_to(self, x, y, z=DEFAULT, yaw=0, velocity=DEFAULT):
         """
         Go to a position
 
@@ -246,7 +247,7 @@ class PositionHlCommander:
 
         if distance > 0.0:
             duration_s = 0 #  distance / self._velocity(velocity)
-            self._hl_commander.go_to(x, y, z, 0, duration_s)
+            self._hl_commander.go_to(x, y, z, yaw, duration_s)
             time.sleep(duration_s)
 
             self._x = x

@@ -1,0 +1,22 @@
+Integrate trajectory control of target drone
+
+First Task
+ - come up with different conditions that show off all features of our code
+
+
+state 1
+fpc go to initconditino
+tpc go to initcondition
+sleep (2 seconds)
+
+state 2
+function pursue (pc, fdata, tdata)
+some sort of tracking trajectory (make functions ex go in circle with input time, or go to single location
+
+state 3
+  same as state 1 but new setup
+
+state 4 
+  same as state 2 but can change tracking drone trajectory or code
+
+
