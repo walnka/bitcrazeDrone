@@ -30,6 +30,12 @@ def simple_log_async_start(scf, logconf):
 def simple_log_async_stop(scf, logconf):
     logconf.stop()
 
+def kahanP1(u,v):
+    u = u/np.linalg.norm(u)
+    v = v/np.linalg.norm(v)
+    return 2*math.atan(np.linalg.norm(u-v)/np.linalg.norm(u+v)) 
+
+
 if __name__ == '__main__':
     # Initialize the low-level drivers
     cflib.crtp.init_drivers()
@@ -61,21 +67,22 @@ if __name__ == '__main__':
                 #calculates the yaw of the tracking drone should be the same as the above yaw within error
                 T_yaw=math.atan2(2*(T_quat[3]*T_quat[0]+T_quat[1]*T_quat[2]),-(1-2*(T_quat[0]**2+T_quat[1]**2)))
                 #calculates the final drone position that is above and behind the tracking drone
-                Final_pos=T_pos+tar_rad*np.array([-math.cos(T_yaw),-math.sin(T_yaw),1])
+                Final_pos=T_pos+tar_rad/math.sqrt(2)*np.array([-math.cos(T_yaw),-math.sin(T_yaw),1])
                 #calculates the straight path vector between the flying drone and the target position
                 diff_F=Final_pos-F_pos
                 #finds the vector that has the shortest distance between the tracking drone and the straight line path of the flying drone to its target position
                 rad_vec=diff-(np.dot(diff,diff_F)/np.dot(diff_F,diff_F)*diff_F)
-                #this gives us the distance between the target path and the straight path
-                act_rad=np.linalg.norm(rad_vec)
+                act_rad = np.linalg.norm(rad_vec)
                 #current radius from the tracking drone
                 cur_rad=np.linalg.norm(diff)
                 
                 if np.linalg.norm(diff)<min_rad:
                     #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
+                    print("Too close")
                     Tar_pos=T_pos+diff/cur_rad*tar_rad
-                elif act_rad<min_rad:
+                elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.atan(min_rad/tar_rad):
                     #if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
+                    print("Intersecting")
                     Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
                 else:
                     Tar_pos=Final_pos
