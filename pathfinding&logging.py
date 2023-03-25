@@ -57,11 +57,11 @@ if __name__ == '__main__':
                 # calculates the vector
                 diff=F_pos-T_pos
                 #calculates the target yaw for the flying drone to be looking at the tracking drone
-                F_yaw=math.atan(diff[1]/diff[0])
+                # F_yaw=math.atan2(diff[1]/diff[0])
                 #calculates the yaw of the tracking drone should be the same as the above yaw within error
-                T_yaw=math.atan(2*(T_quat[3]*T_quat[0]+T_quat[1]*T_quat[2])/(1-2*(T_quat[0]**2+T_quat[1]**2)))
+                T_yaw=math.atan2(2*(T_quat[3]*T_quat[0]+T_quat[1]*T_quat[2]),-(1-2*(T_quat[0]**2+T_quat[1]**2)))
                 #calculates the final drone position that is above and behind the tracking drone
-                Final_pos=T_pos+tar_rad*np.array([math.sin(T_yaw),math.cos(T_yaw),1])
+                Final_pos=T_pos+tar_rad*np.array([-math.cos(T_yaw),-math.sin(T_yaw),1])
                 #calculates the straight path vector between the flying drone and the target position
                 diff_F=Final_pos-F_pos
                 #finds the vector that has the shortest distance between the tracking drone and the straight line path of the flying drone to its target position
@@ -79,6 +79,7 @@ if __name__ == '__main__':
                     Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
                 else:
                     Tar_pos=Final_pos
-                Tar_yaw=F_yaw
+                Tar_yaw=T_yaw
                 print(Tar_pos)
                 print(Tar_yaw)
+                time.sleep(0.1)
