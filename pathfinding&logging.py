@@ -80,7 +80,7 @@ def pursue(pc, fdata, tdata):
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
         print("Too close")
         Tar_pos=T_pos+diff/cur_rad*tar_rad
-    elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.atan(min_rad/tar_rad):
+    elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad):
         #if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
         print("Intersecting")
         Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
@@ -114,14 +114,15 @@ if __name__ == '__main__':
     lg_stabf.add_variable('kalman.stateX', 'FP16')
     lg_stabf.add_variable('kalman.stateY', 'FP16')
     lg_stabf.add_variable('kalman.stateZ', 'FP16')
-    with SyncCrazyflie(urit, cf=Crazyflie(rw_cache='./cache')) as tscf:
-        with SyncCrazyflie(urif, cf=Crazyflie(rw_cache='./cache')) as fscf:
+    with SyncCrazyflie(urit, cf=Crazyflie(rw_cache='./cachet')) as tscf:
+        with SyncCrazyflie(urif, cf=Crazyflie(rw_cache='./cachef')) as fscf:
             with PositionHlCommander(fscf, controller=PositionHlCommander.CONTROLLER_PID) as fpc:
-                simple_log_async_start(tscf, lg_stabt)
-                simple_log_async_start(fscf, lg_stabf)
-                time.sleep(1)
-                # TODO: Change below code to FSM for diifferent conditions to show off features of our code
-                # See nextsteps.txt for more info
-                while True:
-                    pursue(fpc, lg_stabf.data, lg_stabt.data)
-                    time.sleep(0.01)
+                with PositionHlCommander(tscf, controller=PositionHlCommander.CONTROLLER_PID) as tpc:
+                    simple_log_async_start(tscf, lg_stabt)
+                    simple_log_async_start(fscf, lg_stabf)
+                    time.sleep(1)
+                    # TODO: Change below code to FSM for diifferent conditions to show off features of our code
+                    # See nextsteps.txt for more info
+                    while True:
+                        pursue(fpc, lg_stabf.data, lg_stabt.data)
+                        time.sleep(0.01)
