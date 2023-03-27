@@ -125,4 +125,4 @@ if __name__ == '__main__':
                     # See nextsteps.txt for more info
                     while True:
                         pursue(fpc, lg_stabf.data, lg_stabt.data)
-                        time.sleep(0.01)
+                        time.sleep(0.01) #add variable
