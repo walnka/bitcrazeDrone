@@ -8,8 +8,8 @@ from cflib.utils import uri_helper
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncLogger import SyncLogger
 # URI to the Crazyflie to connect to
-fly = uri_helper.uri_from_env(default='radio://0/79/2M/E7E7E7E7E6')
-track = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
+track = uri_helper.uri_from_env(default='radio://0/79/2M/E7E7E7E7E6')
+fly = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
 
 def posOut( scf, lg_stab):
     data = []
