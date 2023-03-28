@@ -37,23 +37,18 @@ def kahanP1(u,v):
     v = v/np.linalg.norm(v)
     return 2*math.atan(np.linalg.norm(u-v)/np.linalg.norm(u+v)) 
 
-def oobounds(tar_pos):
-    x = tar_pos[0]
-    y = tar_pos[1]
-    z = tar_pos[2]
-    if z<.2:
-        z=.2
-    elif 1.3<z:
-        z= 1.3
-    if x<-.7:
-        x=-.7
-    elif .7<x:
-        x= .7
-    if y<-.4:
-        y=-.4
-    elif .6<y:
-        y= .6
-    return np.array([x,y,z])
+def oobounds(pos):
+    # [-x,x,-y,y,-z,z]
+    lims=[.2,1.3,-.7,.7,-.4,.6]
+    x = pos[0]
+    y = pos[1]
+    z = pos[2]
+    for i in range(3):
+        if pos[i]<lims[2*i]:
+            pos[i]=lims[2*i]
+        elif pos[i]>lims[2*i+1]:
+            pos[i]=lims[2*i+1]
+    return np.array(pos)
 
 # Finds next location for pursuer to go. 
 # Run next line to call function in main
