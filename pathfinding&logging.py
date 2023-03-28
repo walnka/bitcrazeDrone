@@ -15,12 +15,13 @@ from cflib.crazyflie.syncLogger import SyncLogger
 drone5='radio://0/78/2M/E7E7E7E7E5'
 drone6='radio://0/79/2M/E7E7E7E7E6'
 drone7='radio://0/80/2M/E7E7E7E7E7'
-#  URI that are actually used in the program
+# URI that are actually used in the program
 urit = drone7
 urif = drone6
 # drone parameters
-# to edit bounds go to oobounds function below
-# cahgnes the frequency of update commands and of the position logging
+# software bounds to keep the drone from hitting the net
+lims=[.2,1.3,-.7,.7,-.4,.6]
+# chagnes the frequency of update commands and of the position logging
 freq=20
 # tracking drone velocity
 tvel=.1
@@ -57,7 +58,6 @@ def kahanP1(u,v):
 
 def oobounds(pos):
     # limits of form [-x,x,-y,y,-z,z]
-    lims=[.2,1.3,-.7,.7,-.4,.6]
     for i in range(3):
         if pos[i]<lims[2*i]:
             pos[i]=lims[2*i]
@@ -114,10 +114,10 @@ if __name__ == '__main__':
     lg_stabt.add_variable('kalman.stateX', 'FP16')
     lg_stabt.add_variable('kalman.stateY', 'FP16')
     lg_stabt.add_variable('kalman.stateZ', 'FP16')
-    lg_stabt.add_variable('kalman.q0', 'float')
-    lg_stabt.add_variable('kalman.q1', 'float')
-    lg_stabt.add_variable('kalman.q2', 'float')
-    lg_stabt.add_variable('kalman.q3', 'float')
+    lg_stabt.add_variable('kalman.q0', 'FP16')
+    lg_stabt.add_variable('kalman.q1', 'FP16')
+    lg_stabt.add_variable('kalman.q2', 'FP16')
+    lg_stabt.add_variable('kalman.q3', 'FP16')
     lg_stabf = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
     lg_stabf.add_variable('kalman.stateX', 'FP16')
     lg_stabf.add_variable('kalman.stateY', 'FP16')
