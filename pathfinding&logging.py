@@ -14,20 +14,20 @@ drone5='radio://0/78/2M/E7E7E7E7E5'
 drone6='radio://0/79/2M/E7E7E7E7E6'
 drone7='radio://0/80/2M/E7E7E7E7E7'
 # URI that are actually used in the program
-urit = drone6
-urif = drone7
+urit = drone5
+urif = drone6
 # drone parameters
 # software bounds to keep the drone from hitting the net
 # limits of form [-x,x,-y,y,-z,z]
 lims=[-.7,.7,-.4,.6,.2,1.4]
 # time to predict forward with velocity
-pred=.6
+pred=0
 # chagnes the frequency of update commands and of the position logging
 freq=20
 # tracking drone velocity
 tvel=.1
 # flying drone velocity
-fvel=1
+fvel=2
 # radius of exclusion for drone pathfinding
 min_rad=.15
 # distance of the target position to the drone
@@ -114,8 +114,6 @@ def pursue(pc, fdata, tdata):
     act_rad = np.linalg.norm(rad_vec)
     #current radius from the tracking drone
     cur_rad=np.linalg.norm(diff)
-    print(kahanP1(T_pos-Final_pos,F_pos-Final_pos))
-    print(math.asin(min_rad/tar_rad))
     if cur_rad<min_rad:
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
         print("Too close")
@@ -149,6 +147,11 @@ if __name__ == '__main__':
         time.sleep(1)
         # TODO: Change below code to FSM for diifferent conditions to show off features of our code
         # See nextsteps.txt for more info
-        while True:
+        ti=time.time()
+        t=0
+        w=.1
+        while t<20:
+            #t=time.time()-ti
+            #gotoLoc(tpc,[.4*math.sin(w*t),.4*math.cos(w*t),1],t*w,fvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
