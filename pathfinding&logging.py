@@ -148,6 +148,7 @@ def gotoLoc(pc,pos,yaw,v):
 if __name__ == '__main__':
     # Initialize the low-level drivers
     cflib.crtp.init_drivers()
+
     #ensures that both drones are connected and are able to be flown
     with(SyncCrazyflie(urif, cf=Crazyflie(rw_cache='./cachef')) as fscf,
     SyncCrazyflie(urit, cf=Crazyflie(rw_cache='./cachet')) as tscf,
