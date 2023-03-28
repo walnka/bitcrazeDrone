@@ -14,8 +14,8 @@ drone5='radio://0/78/2M/E7E7E7E7E5'
 drone6='radio://0/79/2M/E7E7E7E7E6'
 drone7='radio://0/80/2M/E7E7E7E7E7'
 # URI that are actually used in the program
-urit = drone5
-urif = drone6
+urit = drone6
+urif = drone7
 # drone parameters
 # software bounds to keep the drone from hitting the net
 # limits of form [-x,x,-y,y,-z,z]
@@ -71,13 +71,11 @@ logging.basicConfig(level=logging.ERROR)
 
 def log_stab_callback(timestamp, data, logconf):
     temp=list(data.values())
-    # print(temp)
-    # print(temp[4])
-    temp.append((logconf.data[3]-temp[3])*freq)
+    temp.append((logconf.data[4]-temp[4])*freq)
     logconf.data=temp
 
 def simple_log_async_start(scf, logconf):
-    logconf.data=[0,0,0,0,0,0,0,0]
+    logconf.data=[0,0,0,0,0,0,0,0,0]
     cf = scf.cf
     cf.log.add_config(logconf)
     logconf.data_received_cb.add_callback(log_stab_callback)
@@ -108,7 +106,6 @@ def pursue(pc, fdata, tdata):
     # print(tdata[0:3])
     # print(tdata[3]/180*math.pi)
     # print(tdata[4:7])
-    # print(tdata[7])
     T_pos=np.array(tdata[0:3])
     T_yaw=np.array(tdata[3])/180*math.pi
     T_vel=np.array(tdata[4:7])
@@ -121,7 +118,7 @@ def pursue(pc, fdata, tdata):
     #calculates the final drone position that is above and behind the tracking drone
     offset=tar_rad*np.array([-math.cos(T_yaw)*math.cos(hov_ang),-math.sin(T_yaw)*math.cos(hov_ang),math.sin(hov_ang)])
     offsetvel=tar_rad*np.array([math.sin(T_yaw)*math.cos(hov_ang),-math.cos(T_yaw)*math.cos(hov_ang),0])*T_yawv
-    Final_pos=T_pos+offset+(offsetvel+T_vel)*pred
+    Final_pos=T_pos+offset+(T_vel+offsetvel)*pred
     #calculates the straight path vector between the flying drone and the target position
     diff_F=Final_pos-F_pos
     # finds the vector that has the shortest distance between the tracking drone and the straight line path of the flying drone to its target position
