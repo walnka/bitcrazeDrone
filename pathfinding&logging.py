@@ -21,7 +21,7 @@ urif = drone7
 # limits of form [-x,x,-y,y,-z,z]
 lims=[-.7,.7,-.4,.6,.2,1.4]
 # time to predict forward with velocity
-pred=.2
+pred=.6
 # chagnes the frequency of update commands and of the position logging
 freq=20
 # tracking drone velocity
@@ -36,13 +36,6 @@ tar_rad=.3
 hov_ang=math.pi/4
 #data logging required for persue
 logt = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
-# logt.add_variable('kalman.stateX', 'FP16')
-# logt.add_variable('kalman.stateY', 'FP16')
-# logt.add_variable('kalman.stateZ', 'FP16')
-# logt.add_variable('kalman.q0', 'FP16')
-# logt.add_variable('kalman.q1', 'FP16')
-# logt.add_variable('kalman.q2', 'FP16')
-# logt.add_variable('kalman.q3', 'FP16')
 logt.add_variable('stateEstimate.x', 'FP16')
 logt.add_variable('stateEstimate.y', 'FP16')
 logt.add_variable('stateEstimate.z', 'FP16')
@@ -51,9 +44,6 @@ logt.add_variable('stateEstimate.vx', 'FP16')
 logt.add_variable('stateEstimate.vy', 'FP16')
 logt.add_variable('stateEstimate.vz', 'FP16')
 logf = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
-# logf.add_variable('kalman.stateX', 'FP16')
-# logf.add_variable('kalman.stateY', 'FP16')
-# logf.add_variable('kalman.stateZ', 'FP16')
 logf.add_variable('stateEstimate.x', 'FP16')
 logf.add_variable('stateEstimate.y', 'FP16')
 logf.add_variable('stateEstimate.z', 'FP16')
@@ -61,9 +51,6 @@ logf.add_variable('stateEstimate.yaw', 'FP16')
 logf.add_variable('stateEstimate.vx', 'FP16')
 logf.add_variable('stateEstimate.vy', 'FP16')
 logf.add_variable('stateEstimate.vz', 'FP16')
-
-
-
 #add other variables to be logged below
 
 # Only output errors from the logging framework
@@ -127,11 +114,13 @@ def pursue(pc, fdata, tdata):
     act_rad = np.linalg.norm(rad_vec)
     #current radius from the tracking drone
     cur_rad=np.linalg.norm(diff)
+    print(kahanP1(T_pos-Final_pos,F_pos-Final_pos))
+    print(math.asin(min_rad/tar_rad))
     if cur_rad<min_rad:
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
         print("Too close")
         Tar_pos=T_pos+diff/cur_rad*tar_rad
-    elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad):
+    elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2):
         #if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
         print("Intersecting")
         Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
@@ -148,7 +137,6 @@ def gotoLoc(pc,pos,yaw,v):
 if __name__ == '__main__':
     # Initialize the low-level drivers
     cflib.crtp.init_drivers()
-
     #ensures that both drones are connected and are able to be flown
     with(SyncCrazyflie(urif, cf=Crazyflie(rw_cache='./cachef')) as fscf,
     SyncCrazyflie(urit, cf=Crazyflie(rw_cache='./cachet')) as tscf,
