@@ -132,6 +132,13 @@ def gotoLoc(pc,pos,yaw,v):
     pos = oobounds(pos)
     pc.go_to(pos[0],pos[1],pos[2],yaw,v)
 
+def goToHome():
+    gotoLoc(tpc,[0,0,0.1],0,fvel)
+    pursue(fpc, logf.data, logt.data)
+    time.sleep(2)
+
+
+    
 if __name__ == '__main__':
     # Initialize the low-level drivers
     cflib.crtp.init_drivers()
@@ -147,11 +154,127 @@ if __name__ == '__main__':
         time.sleep(1)
         # TODO: Change below code to FSM for diifferent conditions to show off features of our code
         # See nextsteps.txt for more info
-        ti=time.time()
-        t=0
-        w=.1
+        
+               
+        #Current states:
+        #Purerot
+        #backandforthy
+        #backandforthx
+        #upanddown
+        #kahandemonstration
+        #boundarydemonstration       
+        
+        # pureRot
+        t = 0
+        ti = time.time()
+        w = 0.1
+        while t<5:
+            t=time.time()-ti
+            gotoLoc(tpc,[0,0,0.1],t*w,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+            
+        # home
+        goToHome()
+        
+        # backAndForthY
+        t = 0
+        ti = time.time()
+        w = 0.1
+        while t<1:
+            t=time.time()-ti
+            gotoLoc(tpc,[0,0.5,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        while t<2:
+            t=time.time()-ti
+            gotoLoc(tpc,[0,-0.5,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        t = 0
+        ti = time.time()
+        w = 0.1
+        while t<2:
+            t=time.time()-ti
+            gotoLoc(tpc,[0,0.5,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        while t<2:
+            t=time.time()-ti
+            gotoLoc(tpc,[0,-0.5,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+            
+        # home
+        goToHome()    
+        
+        # backAndForthX
+        t = 0
+        ti = time.time()
+        w = 0.1
+        while t<1:
+            t=time.time()-ti
+            gotoLoc(tpc,[0.5,0,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        while t<2:
+            t=time.time()-ti
+            gotoLoc(tpc,[-0.5,0,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        t = 0
+        ti = time.time()
+        w = 0.1
+        while t<2:
+            t=time.time()-ti
+            gotoLoc(tpc,[0.5,0,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        while t<2:
+            t=time.time()-ti
+            gotoLoc(tpc,[-0.5,0,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        
+        #Home
+        goToHome()
+        
+        # upAndDown
+        t = 0
+        ti = time.time()
+        w = 0.1
+        while t<1:
+            t=time.time()-ti
+            gotoLoc(tpc,[0,0,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        while t<2:
+            t=time.time()-ti
+            gotoLoc(tpc,[0,0,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        t = 0
+        ti = time.time()
+        w = 0.1
+        while t<2:
+            t=time.time()-ti
+            gotoLoc(tpc,[0.5,0,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        while t<2:
+            t=time.time()-ti
+            gotoLoc(tpc,[-0.5,0,0.1],0,fvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        
+        # kahandemonstration
+        
+        
+        #boundarydemonstration
+        
+        #weird ass function
         while t<20:
-            #t=time.time()-ti
-            #gotoLoc(tpc,[.4*math.sin(w*t),.4*math.cos(w*t),1],t*w,fvel)
+            t=time.time()-ti
+            gotoLoc(tpc,[.4*math.sin(w*t),.4*math.cos(w*t),1],t*w,fvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
