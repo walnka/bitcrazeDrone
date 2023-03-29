@@ -15,7 +15,7 @@ drone6='radio://0/79/2M/E7E7E7E7E6'
 drone7='radio://0/80/2M/E7E7E7E7E7'
 # URI that are actually used in the program
 urit = drone5
-urif = drone6
+urif = drone7
 # drone parameters
 # software bounds to keep the drone from hitting the net
 # limits of form [-x,x,-y,y,-z,z]
@@ -67,7 +67,7 @@ logging.basicConfig(level=logging.ERROR)
 def log_stab_callback(timestamp, data, logconf):
     temp=list(np.array(list(data.values()))/1000)
     if len(temp)>=4:
-        temp[4]=temp[4]*1000/180*math.pi
+        temp[3]=temp[3]*1000/180*math.pi
     if len(temp)>=9:
         temp.append((temp[8]-logconf.data[8])*freq)
     logconf.data=list(temp)
