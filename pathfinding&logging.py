@@ -36,46 +36,44 @@ tar_rad=.3
 hov_ang=math.pi/4
 #data logging required for persue
 logt = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
-logt.add_variable('stateEstimate.x', 'FP16')
-logt.add_variable('stateEstimate.y', 'FP16')
-logt.add_variable('stateEstimate.z', 'FP16')
+logt.add_variable('stateEstimateZ.x', 'int16_t')
+logt.add_variable('stateEstimateZ.y', 'int16_t')
+logt.add_variable('stateEstimateZ.z', 'int16_t')
 logt.add_variable('stateEstimate.yaw', 'FP16')
-logt.add_variable('stateEstimate.vx', 'FP16')
-logt.add_variable('stateEstimate.vy', 'FP16')
-logt.add_variable('stateEstimate.vz', 'FP16')
-logt.add_variable('stateEstimate.ax', 'FP16')
-logt.add_variable('stateEstimate.ay', 'FP16')
-logt.add_variable('stateEstimate.az', 'FP16')
+logt.add_variable('stateEstimateZ.vx', 'int16_t')
+logt.add_variable('stateEstimateZ.vy', 'int16_t')
+logt.add_variable('stateEstimateZ.vz', 'int16_t')
+logt.add_variable('stateEstimateZ.rateYaw', 'int16_t')
+logt.add_variable('stateEstimateZ.ax', 'int16_t')
+logt.add_variable('stateEstimateZ.ay', 'int16_t')
+logt.add_variable('stateEstimateZ.az', 'int16_t')
 logf = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
-logf.add_variable('stateEstimate.x', 'FP16')
-logf.add_variable('stateEstimate.y', 'FP16')
-logf.add_variable('stateEstimate.z', 'FP16')
-logf.add_variable('stateEstimate.yaw', 'FP16')
-logf.add_variable('stateEstimate.vx', 'FP16')
-logf.add_variable('stateEstimate.vy', 'FP16')
-logf.add_variable('stateEstimate.vz', 'FP16')
-logf.add_variable('stateEstimate.ax', 'FP16')
-logf.add_variable('stateEstimate.ay', 'FP16')
-logf.add_variable('stateEstimate.az', 'FP16')
+logf.add_variable('stateEstimateZ.x', 'int16_t')
+logf.add_variable('stateEstimateZ.y', 'int16_t')
+logf.add_variable('stateEstimateZ.z', 'int16_t')
+# logf.add_variable('stateEstimate.yaw', 'FP16')
+# logf.add_variable('stateEstimateZ.vx', 'int16_t')
+# logf.add_variable('stateEstimateZ.vy', 'int16_t')
+# logf.add_variable('stateEstimateZ.vz', 'int16_t')
+# logf.add_variable('stateEstimateZ.rateYaw', 'int16_t')
+# logf.add_variable('stateEstimateZ.ax', 'int16_t')
+# logf.add_variable('stateEstimateZ.ay', 'int16_t')
+# logf.add_variable('stateEstimateZ.az', 'int16_t')
 #add other variables to be logged below
 
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
 
 def log_stab_callback(timestamp, data, logconf):
-    temp=list(data.values())
-    if len(temp)==10:
-        temp2=[0,0,0]
-        for i in range(3):
-            temp2[2-i]=temp.pop(-1)
-    temp.append((temp[4]-logconf.data[4])*freq)
-    if len(temp)==10:
-        temp.append(temp2[:])
+    temp=list(np.array(list(data.values()))/1000)
+    if len(temp)>=4:
+        temp[4]=temp[4]*1000/180*math.pi
+    if len(temp)>=9:
         temp.append((temp[8]-logconf.data[8])*freq)
-    logconf.data=temp
+    logconf.data=list(temp)
 
 def simple_log_async_start(scf, logconf):
-    logconf.data=[0,0,0,0,0,0,0,0,0]
+    logconf.data=[0,0,0,0,0,0,0,0,0,0,0,0]
     cf = scf.cf
     cf.log.add_config(logconf)
     logconf.data_received_cb.add_callback(log_stab_callback)
@@ -107,22 +105,22 @@ def pursue(pc, fdata, tdata):
     # print(tdata[3]/180*math.pi)
     # print(tdata[4:7])
     T_pos=np.array(tdata[0:3])
-    T_yaw=np.array(tdata[3])/180*math.pi
+    T_yaw=np.array(tdata[3])
     offset=tar_rad*np.array([-math.cos(T_yaw)*math.cos(hov_ang),-math.sin(T_yaw)*math.cos(hov_ang),math.sin(hov_ang)])
     # calculates the final target position of the dorne
     Final_pos=T_pos+offset
     # if we are recording the velocity data it will use this to predict a final position of the drone
     if len(tdata)>=8:
         T_vel=np.array(tdata[4:7])
-        T_yawv=np.array(tdata[7])/180*math.pi
+        T_yawv=np.array(tdata[7])
         offsetvel=tar_rad*np.array([math.sin(T_yaw)*math.cos(hov_ang),-math.cos(T_yaw)*math.cos(hov_ang),0])*T_yawv
         Final_pos=Final_pos+(T_vel+offsetvel)*pred
     # if we are recording the acceleration data it will use this to predict the final position of the drone
     if len(tdata)>=12:
         T_acc=np.array(tdata[8:11])
-        T_yawa=np.array(tdata[11])/180*math.pi
+        T_yawa=np.array(tdata[11])
         offsetacc=tar_rad*(np.array([math.sin(T_yaw)*math.cos(hov_ang),-math.cos(T_yaw)*math.cos(hov_ang),0])*T_yawa+np.array([math.cos(T_yaw)*math.cos(hov_ang),math.sin(T_yaw)*math.cos(hov_ang),0])*T_yawv**2)
-        Final_pos=Final_pos+(T_acc+offsetacc)*pred**2
+        Final_pos=Final_pos+(T_acc+offsetacc)/2*pred**2
     F_pos=np.array(fdata[0:3])
     # calculates the vector between the 2 drones
     diff=F_pos-T_pos
