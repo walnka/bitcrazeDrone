@@ -14,20 +14,20 @@ drone5='radio://0/78/2M/E7E7E7E7E5'
 drone6='radio://0/79/2M/E7E7E7E7E6'
 drone7='radio://0/80/2M/E7E7E7E7E7'
 # URI that are actually used in the program
-urit = drone5
+urit = drone6
 urif = drone7
 # drone parameters
 # software bounds to keep the drone from hitting the net
 # limits of form [-x,x,-y,y,-z,z]
-lims=[-.7,.7,-.4,.6,.2,1.4]
+lims=[-.7,.7,-.4,.6,.3,1.4]
 # time to predict forward with velocity
-pred=0
+pred=.5
 # chagnes the frequency of update commands and of the position logging
 freq=20
 # tracking drone velocity
-tvel=.1
+tvel=.2
 # flying drone velocity
-fvel=2
+fvel=1
 # radius of exclusion for drone pathfinding
 min_rad=.15
 # distance of the target position to the drone
@@ -134,7 +134,7 @@ def pursue(pc, fdata, tdata):
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
         print("Too close")
         Tar_pos=T_pos+diff/cur_rad*tar_rad
-    elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2):
+    elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2) and cur_rad<tar_rad:
         #if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
         print("Intersecting")
         Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
@@ -149,7 +149,7 @@ def gotoLoc(pc,pos,yaw,v):
     pc.go_to(pos[0],pos[1],pos[2],yaw,v)
 
 def goToHome():
-    gotoLoc(tpc,[0,0,0.1],0,fvel)
+    gotoLoc(tpc,[0,0,0.1],0,tvel)
     pursue(fpc, logf.data, logt.data)
     time.sleep(2)
 
@@ -186,12 +186,12 @@ if __name__ == '__main__':
         w = 0.1
         while t<5:
             t=time.time()-ti
-            gotoLoc(tpc,[0,0,0.1],t*w,fvel)
+            gotoLoc(tpc,[0,0,0.1],t*w,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
             
         # home
-        goToHome()
+        # goToHome()
         
         # backAndForthY
         t = 0
@@ -199,12 +199,12 @@ if __name__ == '__main__':
         w = 0.1
         while t<1:
             t=time.time()-ti
-            gotoLoc(tpc,[0,0.5,0.1],0,fvel)
+            gotoLoc(tpc,[0,0.5,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         while t<2:
             t=time.time()-ti
-            gotoLoc(tpc,[0,-0.5,0.1],0,fvel)
+            gotoLoc(tpc,[0,-0.5,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         t = 0
@@ -212,17 +212,17 @@ if __name__ == '__main__':
         w = 0.1
         while t<2:
             t=time.time()-ti
-            gotoLoc(tpc,[0,0.5,0.1],0,fvel)
+            gotoLoc(tpc,[0,0.5,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         while t<2:
             t=time.time()-ti
-            gotoLoc(tpc,[0,-0.5,0.1],0,fvel)
+            gotoLoc(tpc,[0,-0.5,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
             
         # home
-        goToHome()    
+        # goToHome()    
         
         # backAndForthX
         t = 0
@@ -230,12 +230,12 @@ if __name__ == '__main__':
         w = 0.1
         while t<1:
             t=time.time()-ti
-            gotoLoc(tpc,[0.5,0,0.1],0,fvel)
+            gotoLoc(tpc,[0.5,0,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         while t<2:
             t=time.time()-ti
-            gotoLoc(tpc,[-0.5,0,0.1],0,fvel)
+            gotoLoc(tpc,[-0.5,0,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         t = 0
@@ -243,17 +243,17 @@ if __name__ == '__main__':
         w = 0.1
         while t<2:
             t=time.time()-ti
-            gotoLoc(tpc,[0.5,0,0.1],0,fvel)
+            gotoLoc(tpc,[0.5,0,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         while t<2:
             t=time.time()-ti
-            gotoLoc(tpc,[-0.5,0,0.1],0,fvel)
+            gotoLoc(tpc,[-0.5,0,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         
         #Home
-        goToHome()
+        # goToHome()
         
         # upAndDown
         t = 0
@@ -261,12 +261,12 @@ if __name__ == '__main__':
         w = 0.1
         while t<1:
             t=time.time()-ti
-            gotoLoc(tpc,[0,0,0.1],0,fvel)
+            gotoLoc(tpc,[0,0,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         while t<2:
             t=time.time()-ti
-            gotoLoc(tpc,[0,0,0.1],0,fvel)
+            gotoLoc(tpc,[0,0,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         t = 0
@@ -274,12 +274,12 @@ if __name__ == '__main__':
         w = 0.1
         while t<2:
             t=time.time()-ti
-            gotoLoc(tpc,[0.5,0,0.1],0,fvel)
+            gotoLoc(tpc,[0.5,0,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         while t<2:
             t=time.time()-ti
-            gotoLoc(tpc,[-0.5,0,0.1],0,fvel)
+            gotoLoc(tpc,[-0.5,0,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         
@@ -291,6 +291,6 @@ if __name__ == '__main__':
         #weird ass function
         while t<20:
             t=time.time()-ti
-            gotoLoc(tpc,[.4*math.sin(w*t),.4*math.cos(w*t),1],t*w,fvel)
+            gotoLoc(tpc,[.4*math.sin(w*t),.4*math.cos(w*t),1],t*w,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
