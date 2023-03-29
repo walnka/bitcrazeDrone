@@ -246,9 +246,9 @@ class PositionHlCommander:
         distance = math.sqrt(dx * dx + dy * dy + dz * dz)
 
         if distance > 0.0:
-            duration_s = 0 #  distance / self._velocity(velocity)
+            duration_s = distance / self._velocity(velocity)
             self._hl_commander.go_to(x, y, z, yaw, duration_s)
-            time.sleep(duration_s)
+            #time.sleep(duration_s)
 
             self._x = x
             self._y = y
