@@ -65,9 +65,7 @@ def log_stab_callback(timestamp, data, logconf):
     temp=list(np.array(list(data.values()))/1000)
     if len(temp)>=4:
         temp[3]=temp[3]*1000/180*math.pi
-    print(temp)
     if len(temp)>=9:
-        print(temp[7])
         temp[10]=temp[10]-9.81
         temp.append((temp[7]-logconf.data[7])*freq)
     logconf.data=list(temp)
