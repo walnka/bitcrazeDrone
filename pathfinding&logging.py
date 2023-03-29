@@ -44,9 +44,6 @@ logt.add_variable('stateEstimateZ.vx', 'int16_t')
 logt.add_variable('stateEstimateZ.vy', 'int16_t')
 logt.add_variable('stateEstimateZ.vz', 'int16_t')
 logt.add_variable('stateEstimateZ.rateYaw', 'int16_t')
-logt.add_variable('stateEstimateZ.ax', 'int16_t')
-logt.add_variable('stateEstimateZ.ay', 'int16_t')
-logt.add_variable('stateEstimateZ.az', 'int16_t')
 logf = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
 logf.add_variable('stateEstimateZ.x', 'int16_t')
 logf.add_variable('stateEstimateZ.y', 'int16_t')
@@ -68,8 +65,11 @@ def log_stab_callback(timestamp, data, logconf):
     temp=list(np.array(list(data.values()))/1000)
     if len(temp)>=4:
         temp[3]=temp[3]*1000/180*math.pi
+    print(temp)
     if len(temp)>=9:
-        temp.append((temp[8]-logconf.data[8])*freq)
+        print(temp[7])
+        temp[10]=temp[10]-9.81
+        temp.append((temp[7]-logconf.data[7])*freq)
     logconf.data=list(temp)
 
 def simple_log_async_start(scf, logconf):
