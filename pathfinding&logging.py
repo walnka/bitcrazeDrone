@@ -14,18 +14,18 @@ drone5='radio://0/78/2M/E7E7E7E7E5'
 drone6='radio://0/79/2M/E7E7E7E7E6'
 drone7='radio://0/80/2M/E7E7E7E7E7'
 # URI that are actually used in the program
-urit = drone6
-urif = drone7
+urit = drone7
+urif = drone6
 # drone parameters
 # software bounds to keep the drone from hitting the net
 # limits of form [-x,x,-y,y,-z,z]
 lims=[-.7,.7,-.4,.6,.3,1.4]
 # time to predict forward with velocity
-pred=.6
+pred=.5
 # chagnes the frequency of update commands and of the position logging
-freq=20
+freq=40
 # tracking drone velocity
-tvel=.1
+tvel=.2
 # flying drone velocity
 fvel=1
 # radius of exclusion for drone pathfinding
@@ -33,8 +33,8 @@ min_rad=.2
 # distance of the target position to the drone
 tar_rad=.3
 # angle between the horizon of the target drone and the flying drone
-hov_ang=math.pi/6
-#data logging required for persue
+hov_ang=math.pi/12
+# data logging required for persue
 logt = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
 logt.add_variable('stateEstimateZ.x', 'int16_t')
 logt.add_variable('stateEstimateZ.y', 'int16_t')
@@ -44,9 +44,10 @@ logt.add_variable('stateEstimateZ.vx', 'int16_t')
 logt.add_variable('stateEstimateZ.vy', 'int16_t')
 logt.add_variable('stateEstimateZ.vz', 'int16_t')
 logt.add_variable('stateEstimateZ.rateYaw', 'int16_t')
-logt.add_variable('stateEstimateZ.ax', 'int16_t')
-logt.add_variable('stateEstimateZ.ay', 'int16_t')
-logt.add_variable('stateEstimateZ.az', 'int16_t')
+# uncomment to use accelerometer data, leave commented to calculate acceleration using the above velocity
+# logt.add_variable('stateEstimateZ.ax', 'int16_t')
+# logt.add_variable('stateEstimateZ.ay', 'int16_t')
+# logt.add_variable('stateEstimateZ.az', 'int16_t')
 logf = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
 logf.add_variable('stateEstimateZ.x', 'int16_t')
 logf.add_variable('stateEstimateZ.y', 'int16_t')
@@ -66,11 +67,17 @@ logging.basicConfig(level=logging.ERROR)
 
 def log_stab_callback(timestamp, data, logconf):
     temp=list(np.array(list(data.values()))/1000)
-    if len(temp)>=4:
+    if len(temp)>4:
         temp[3]=temp[3]*1000/180*math.pi
-    if len(temp)>=9:
-        temp[10]=temp[10]-9.81
-        temp.append((temp[7]-logconf.data[7])*freq)
+        if len(temp)>=9: # calculates acceleration from onboard accelerometer
+            temp[10]=temp[10]-9.81
+            temp.append((temp[7]-logconf.data[7])*freq)
+        else: # caclulates acceleration from velocity
+            for i in range(4):
+                temp.append((temp[4+i]-logconf.data[4+i])*freq)
+    else: # calculates acceleration and velocity form just position data
+        for i in range(8):
+            temp.append((temp[i]-logconf.data[i])*freq)
     logconf.data=list(temp)
 
 def simple_log_async_start(scf, logconf):
@@ -134,14 +141,14 @@ def pursue(pc, fdata, tdata):
     rad_vec=diff-(np.dot(diff,diff_F)/np.dot(diff_F,diff_F)*diff_F)
     # the minimum distance between the path of the flying drone and the tracking drone
     act_rad = np.linalg.norm(rad_vec)
-    #current radius from the tracking drone
+    # current radius from the tracking drone
     cur_rad=np.linalg.norm(diff)
     if cur_rad<min_rad:
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
         # print("Too close")
         Tar_pos=T_pos+diff/cur_rad*tar_rad
     elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2): #and cur_rad<tar_rad:
-        #if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
+        # if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
         # print("Intersecting")
         Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
     else:
@@ -164,7 +171,7 @@ def goToHome():
 if __name__ == '__main__':
     # Initialize the low-level drivers
     cflib.crtp.init_drivers()
-    #ensures that both drones are connected and are able to be flown
+    # ensures that both drones are connected and are able to be flown
     with(SyncCrazyflie(urif, cf=Crazyflie(rw_cache='./cachef')) as fscf,
     SyncCrazyflie(urit, cf=Crazyflie(rw_cache='./cachet')) as tscf,
     PositionHlCommander(tscf, controller=PositionHlCommander.CONTROLLER_PID) as tpc,
@@ -178,13 +185,13 @@ if __name__ == '__main__':
         # See nextsteps.txt for more info
         
                
-        #Current states:
-        #Purerot
-        #backandforthy
-        #backandforthx
-        #upanddown
-        #kahandemonstration
-        #boundarydemonstration       
+        # Current states:
+        # Purerot
+        # backandforthy
+        # backandforthx
+        # upanddown
+        # kahandemonstration
+        # boundarydemonstration       
         
 
         # too close test
@@ -195,19 +202,13 @@ if __name__ == '__main__':
             gotoLoc(tpc,[0,0,0.6],0,fvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
-        while t<6:
-            t=time.time()-ti
-            gotoLoc(fpc,[0,.5,0.6],0,fvel)
-            time.sleep(1/freq)
-        while t<9:
-            t=time.time()-ti
-            gotoLoc(fpc,[0.5,0,0.6],0,fvel)
-            time.sleep(1/freq)
-        while t<14:
-            t=time.time()-ti
-            gotoLoc(fpc,[0.2,0,0.6],0,tvel)
-            time.sleep(1/freq)
-        while t<20:
+        gotoLoc(fpc,[0,.5,0.6],0,fvel)
+        time.sleep(3)
+        gotoLoc(fpc,[0,0.2,0.6],0,fvel)
+        time.sleep(3)
+        t = 0
+        ti = time.time()
+        while t<5:
             t=time.time()-ti
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
@@ -227,17 +228,15 @@ if __name__ == '__main__':
         t=0
         while t<20:
             t=time.time()-ti
-            gotoLoc(tpc,[.2*math.sin(w*t),.2*math.cos(w*t),.5],2*t*w,tvel)
+            gotoLoc(tpc,[.1*math.sin(w*t),.1*math.cos(w*t),.5],2*t*w,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
-
-        # home
-        # goToHome()
+        #after this it goes crazy
         
         # backAndForthY
         t = 0
         ti = time.time()
-        while t<8:
+        while t<16:
             t=time.time()-ti
             if math.floor(t) % 4 <2:
                 gotoLoc(tpc,[0,.5,0.1],0,tvel)
@@ -252,7 +251,7 @@ if __name__ == '__main__':
         # backAndForthX
         t = 0
         ti = time.time()
-        while t<8:
+        while t<16:
             t=time.time()-ti
             if math.floor(t) % 4 <2:
                 gotoLoc(tpc,[0.5,0,0.1],0,tvel)
@@ -261,13 +260,13 @@ if __name__ == '__main__':
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         
-        #Home
+        # Home
         # goToHome()
         
         # upAndDown
         t = 0
         ti = time.time()
-        while t<8:
+        while t<16:
             t=time.time()-ti
             if math.floor(t) % 4 <2:
                 gotoLoc(tpc,[0,0,1.2],0,tvel)
@@ -279,7 +278,5 @@ if __name__ == '__main__':
         # kahandemonstration
         
         
-        #boundarydemonstration
-        
-        #weird ass function
+        # boundarydemonstration
         
