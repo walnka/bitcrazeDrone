@@ -19,7 +19,7 @@ urif = drone6
 # drone parameters
 # software bounds to keep the drone from hitting the net
 # limits of form [-x,x,-y,y,-z,z]
-lims=[-1,.7,-.6,.7,.3,1.4]
+lims=[-1,.7,-.6,.7,.3,1.4] 
 # time to predict forward with velocity
 pred=.5
 # chagnes the frequency of update commands and of the position logging
