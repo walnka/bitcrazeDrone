@@ -25,15 +25,15 @@ pred=.5
 # chagnes the frequency of update commands and of the position logging
 freq=20
 # tracking drone velocity
-tvel=.2
+tvel=.1
 # flying drone velocity
 fvel=1
 # radius of exclusion for drone pathfinding
-min_rad=.15
+min_rad=.2
 # distance of the target position to the drone
 tar_rad=.3
 # angle between the horizon of the target drone and the flying drone
-hov_ang=math.pi/4
+hov_ang=math.pi/6
 #data logging required for persue
 logt = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
 logt.add_variable('stateEstimateZ.x', 'int16_t')
@@ -134,7 +134,7 @@ def pursue(pc, fdata, tdata):
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
         print("Too close")
         Tar_pos=T_pos+diff/cur_rad*tar_rad
-    elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2) and cur_rad<tar_rad:
+    elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2): #and cur_rad<tar_rad:
         #if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
         print("Intersecting")
         Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
@@ -167,7 +167,7 @@ if __name__ == '__main__':
         simple_log_async_start(tscf, logt)
         simple_log_async_start(fscf, logf)
         # required to give the logging time to initialize
-        time.sleep(1)
+        time.sleep(2)
         # TODO: Change below code to FSM for diifferent conditions to show off features of our code
         # See nextsteps.txt for more info
         
@@ -180,44 +180,58 @@ if __name__ == '__main__':
         #kahandemonstration
         #boundarydemonstration       
         
-        # pureRot
+
+        # too close test
         t = 0
         ti = time.time()
-        w = 0.1
-        while t<5:
+        while t<3:
             t=time.time()-ti
-            gotoLoc(tpc,[0,0,0.1],t*w,tvel)
+            gotoLoc(tpc,[0,0,0.6],0,fvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
-            
+        while t<6:
+            t=time.time()-ti
+            gotoLoc(fpc,[0,.5,0.6],0,fvel)
+        while t<9:
+            t=time.time()-ti
+            gotoLoc(fpc,[0.5,0,0.6],0,fvel)
+        while t<14:
+            t=time.time()-ti
+            gotoLoc(fpc,[0.25,0,0.6],0,tvel)
+        while t<20:
+            t=time.time()-ti
+            pursue(fpc, logf.data, logt.data)
+        # pureRot
+        w=2*math.pi/10
+        t = 0
+        ti = time.time()
+        while t<10:
+            t=time.time()-ti
+            gotoLoc(tpc,[0,0,0.5-t/1000],2*t*w,tvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+
+        # moving in a circle with rotation
+        ti = time.time()
+        t=0
+        while t<20:
+            t=time.time()-ti
+            gotoLoc(tpc,[.2*math.sin(w*t),.2*math.cos(w*t),.5],2*t*w,tvel)
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+
         # home
         # goToHome()
         
         # backAndForthY
         t = 0
         ti = time.time()
-        w = 0.1
-        while t<1:
+        while t<8:
             t=time.time()-ti
-            gotoLoc(tpc,[0,0.5,0.1],0,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
-        while t<2:
-            t=time.time()-ti
-            gotoLoc(tpc,[0,-0.5,0.1],0,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
-        t = 0
-        ti = time.time()
-        w = 0.1
-        while t<2:
-            t=time.time()-ti
-            gotoLoc(tpc,[0,0.5,0.1],0,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
-        while t<2:
-            t=time.time()-ti
-            gotoLoc(tpc,[0,-0.5,0.1],0,tvel)
+            if math.floor(t) % 4 <2:
+                gotoLoc(tpc,[0,.5,0.1],0,tvel)
+            else:
+                gotoLoc(tpc,[0,-0.5,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
             
@@ -227,28 +241,12 @@ if __name__ == '__main__':
         # backAndForthX
         t = 0
         ti = time.time()
-        w = 0.1
-        while t<1:
+        while t<8:
             t=time.time()-ti
-            gotoLoc(tpc,[0.5,0,0.1],0,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
-        while t<2:
-            t=time.time()-ti
-            gotoLoc(tpc,[-0.5,0,0.1],0,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
-        t = 0
-        ti = time.time()
-        w = 0.1
-        while t<2:
-            t=time.time()-ti
-            gotoLoc(tpc,[0.5,0,0.1],0,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
-        while t<2:
-            t=time.time()-ti
-            gotoLoc(tpc,[-0.5,0,0.1],0,tvel)
+            if math.floor(t) % 4 <2:
+                gotoLoc(tpc,[0.5,0,0.1],0,tvel)
+            else:
+                gotoLoc(tpc,[-0.5,0,0.1],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         
@@ -258,28 +256,12 @@ if __name__ == '__main__':
         # upAndDown
         t = 0
         ti = time.time()
-        w = 0.1
-        while t<1:
+        while t<8:
             t=time.time()-ti
-            gotoLoc(tpc,[0,0,0.1],0,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
-        while t<2:
-            t=time.time()-ti
-            gotoLoc(tpc,[0,0,0.1],0,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
-        t = 0
-        ti = time.time()
-        w = 0.1
-        while t<2:
-            t=time.time()-ti
-            gotoLoc(tpc,[0.5,0,0.1],0,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
-        while t<2:
-            t=time.time()-ti
-            gotoLoc(tpc,[-0.5,0,0.1],0,tvel)
+            if math.floor(t) % 4 <2:
+                gotoLoc(tpc,[0,0,1.2],0,tvel)
+            else:
+                gotoLoc(tpc,[0,0,0.3],0,tvel)
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
         
@@ -289,8 +271,4 @@ if __name__ == '__main__':
         #boundarydemonstration
         
         #weird ass function
-        while t<20:
-            t=time.time()-ti
-            gotoLoc(tpc,[.4*math.sin(w*t),.4*math.cos(w*t),1],t*w,tvel)
-            pursue(fpc, logf.data, logt.data)
-            time.sleep(1/freq)
+        
