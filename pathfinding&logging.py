@@ -19,7 +19,7 @@ urif = drone6
 # drone parameters
 # software bounds to keep the drone from hitting the net
 # limits of form [-x,x,-y,y,-z,z]
-lims=[-.7,.7,-.4,.6,.3,1.4]
+lims=[-1,.7,-.6,.7,.3,1.4]
 # time to predict forward with velocity
 pred=.5
 # chagnes the frequency of update commands and of the position logging
@@ -236,7 +236,7 @@ if __name__ == '__main__':
         # backAndForthY
         t = 0
         ti = time.time()
-        while t<16:
+        while t<8:
             t=time.time()-ti
             if math.floor(t) % 4 <2:
                 gotoLoc(tpc,[0,.5,0.1],0,tvel)
