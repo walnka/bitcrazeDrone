@@ -21,7 +21,7 @@ urif = drone7
 # limits of form [-x,x,-y,y,-z,z]
 lims=[-.7,.7,-.4,.6,.3,1.4]
 # time to predict forward with velocity
-pred=.5
+pred=.6
 # chagnes the frequency of update commands and of the position logging
 freq=20
 # tracking drone velocity
@@ -44,6 +44,9 @@ logt.add_variable('stateEstimateZ.vx', 'int16_t')
 logt.add_variable('stateEstimateZ.vy', 'int16_t')
 logt.add_variable('stateEstimateZ.vz', 'int16_t')
 logt.add_variable('stateEstimateZ.rateYaw', 'int16_t')
+logt.add_variable('stateEstimateZ.ax', 'int16_t')
+logt.add_variable('stateEstimateZ.ay', 'int16_t')
+logt.add_variable('stateEstimateZ.az', 'int16_t')
 logf = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
 logf.add_variable('stateEstimateZ.x', 'int16_t')
 logf.add_variable('stateEstimateZ.y', 'int16_t')
@@ -113,10 +116,13 @@ def pursue(pc, fdata, tdata):
         T_yawv=np.array(tdata[7])
         offsetvel=tar_rad*np.array([math.sin(T_yaw)*math.cos(hov_ang),-math.cos(T_yaw)*math.cos(hov_ang),0])*T_yawv
         Final_pos=Final_pos+(T_vel+offsetvel)*pred
-    # if we are recording the acceleration data it will use this to predict the final position of the drone
-    if len(tdata)>=12:
-        T_acc=np.array(tdata[8:11])
-        T_yawa=np.array(tdata[11])
+        # if we are recording the acceleration data it will use this to predict the final position of the drone
+        if len(tdata)>=12:
+            T_acc=np.array(tdata[8:11])
+            T_yawa=np.array(tdata[11])
+        else:
+            T_acc=np.array([0,0,0])
+            T_yawa=0
         offsetacc=tar_rad*(np.array([math.sin(T_yaw)*math.cos(hov_ang),-math.cos(T_yaw)*math.cos(hov_ang),0])*T_yawa+np.array([math.cos(T_yaw)*math.cos(hov_ang),math.sin(T_yaw)*math.cos(hov_ang),0])*T_yawv**2)
         Final_pos=Final_pos+(T_acc+offsetacc)/2*pred**2
     F_pos=np.array(fdata[0:3])
@@ -132,11 +138,11 @@ def pursue(pc, fdata, tdata):
     cur_rad=np.linalg.norm(diff)
     if cur_rad<min_rad:
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
-        print("Too close")
+        # print("Too close")
         Tar_pos=T_pos+diff/cur_rad*tar_rad
     elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2): #and cur_rad<tar_rad:
         #if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
-        print("Intersecting")
+        # print("Intersecting")
         Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
     else:
         # if there is no collison issue the drone will go straight to the target point
@@ -192,15 +198,20 @@ if __name__ == '__main__':
         while t<6:
             t=time.time()-ti
             gotoLoc(fpc,[0,.5,0.6],0,fvel)
+            time.sleep(1/freq)
         while t<9:
             t=time.time()-ti
             gotoLoc(fpc,[0.5,0,0.6],0,fvel)
+            time.sleep(1/freq)
         while t<14:
             t=time.time()-ti
-            gotoLoc(fpc,[0.25,0,0.6],0,tvel)
+            gotoLoc(fpc,[0.2,0,0.6],0,tvel)
+            time.sleep(1/freq)
         while t<20:
             t=time.time()-ti
             pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+
         # pureRot
         w=2*math.pi/10
         t = 0
