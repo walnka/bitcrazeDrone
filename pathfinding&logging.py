@@ -172,10 +172,16 @@ if __name__ == '__main__':
     # Initialize the low-level drivers
     cflib.crtp.init_drivers()
     # ensures that both drones are connected and are able to be flown
+    print("setting up...")
     with SyncCrazyflie(urif, cf=Crazyflie(rw_cache='./cachef')) as fscf:
+        print("flying drone connected")
         with SyncCrazyflie(urit, cf=Crazyflie(rw_cache='./cachet')) as tscf:
+          print("tracking drone connected")
           with PositionHlCommander(tscf, controller=PositionHlCommander.CONTROLLER_PID) as tpc:
+            print("tracking position connected")
             with PositionHlCommander(fscf, controller=PositionHlCommander.CONTROLLER_PID) as fpc:
+                print("followwer position conected")
+                print("letsgooooo!")
                 # starts the logging
                 simple_log_async_start(tscf, logt)
                 simple_log_async_start(fscf, logf)
@@ -195,6 +201,7 @@ if __name__ == '__main__':
                 
 
                 # too close test
+                print("too close test")
                 t = 0
                 ti = time.time()
                 while t<3:
@@ -214,6 +221,7 @@ if __name__ == '__main__':
                     time.sleep(1/freq)
 
                 # pureRot
+                print("pureRot")
                 w=2*math.pi/10
                 t = 0
                 ti = time.time()
@@ -224,6 +232,7 @@ if __name__ == '__main__':
                     time.sleep(1/freq)
 
                 # moving in a circle with rotation
+                print("moving in a circle with rotation")
                 ti = time.time()
                 t=0
                 while t<20:
@@ -234,6 +243,7 @@ if __name__ == '__main__':
                 #after this it goes crazy
                 
                 # backAndForthY
+                print("backAndForthY")
                 t = 0
                 ti = time.time()
                 while t<8:
@@ -249,6 +259,7 @@ if __name__ == '__main__':
                 # goToHome()    
                 
                 # backAndForthX
+                print("backAndForthX")
                 t = 0
                 ti = time.time()
                 while t<16:
@@ -276,6 +287,7 @@ if __name__ == '__main__':
                     time.sleep(1/freq)
                 
                 # kahandemonstration
+                print("kahandemonstration")
                 goToHome() #going to home position
                 t = 0
                 ti = time.time()
@@ -302,11 +314,11 @@ if __name__ == '__main__':
                     gotoLoc(fpc, [tar_rad, 0, z_pos], math.pi, tvel)
                     pursue(fpc, logf.data, logt.data)
                     time.sleep(1/freq)
+
                 # boundarydemonstration
-                
+                print("boundarydemonstration")
                 t = 0
                 ti = time.time()
-                
                 while t<2:
                     t =time.time() - ti
                     gotoLoc(fpc, [lims[1]-min_rad/2, 0, (lims[5]-lims[4])/2], 0, tvel)  #stays close to the edge-limit in x-dir, and in the middle of z lims
