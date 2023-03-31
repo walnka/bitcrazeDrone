@@ -287,6 +287,7 @@ if __name__ == '__main__':
             gotoLoc(tpc, [0, 0, 0.1+ t*pos_it], t*math.pi /turn_time, tvel) #possibly tweak tvel to get higher speed
             pursue(fpc, logf.data, logt.data)
             time.sleep(1/freq)
+            
         z_pos = t*pos_it
         t = 0
         ti = time.time()
@@ -301,5 +302,43 @@ if __name__ == '__main__':
             t =time.time() - ti
             goToLoc(fpc, [tar_rad, 0, z_pos], math.pi, tvel)
             pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
         # boundarydemonstration
+        
+        t = 0
+        ti = time.time()
+        
+        while t<2:
+            t =time.time() - ti
+            goToLoc(fpc, [lims[1]-min_rad/2, 0, (lims[5]-lims[4])/2], 0, tvel)  #stays close to the edge-limit in x-dir, and in the middle of z lims
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+            
+        t = 0
+        ti = time.time()
+        turn_time = 3
+        while t<turn_time*2: #rotates two times
+            t =time.time() - ti
+            goToLoc(fpc, [lims[1]-min_rad/2, 0, lims[5]/2], t*math.pi*2 /turn_time, tvel) #rotates completely to push f-drone into the wall,
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+        
+        t = 0
+        ti = time.time()
+        while t<3: #go back to middle
+            t =time.time() - ti
+            goToLoc(fpc, [0, 0, lims[5]/2], 0, tvel) #rotates completely to push f-drone into the wall,
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+            
+        while t<8: #go back to middle
+            t =time.time() - ti
+            goToHome()
+            pursue(fpc, logf.data, logt.data)
+            time.sleep(1/freq)
+            
+        #want to land now
+        
+        
+        
         
