@@ -21,7 +21,7 @@ urif = drone7
 # limits of form [-x,x,-y,y,-z,z]
 lims=[-0.9,.6,-.5,.6,.4,1.3] 
 # time to predict forward with velocity
-pred= 0
+pred= .4
 # chagnes the frequency of update commands and of the position logging
 freq=40
 # tracking drone velocity
@@ -142,15 +142,15 @@ def pursue(pc, fdata, tdata):
     # the minimum distance between the path of the flying drone and the tracking drone
     act_rad = np.linalg.norm(rad_vec)
     # current radius from the tracking drone
-    cur_rad=np.linalg.norm(diff)
+    cur_rad=np.linalg.norm(diff*[1,1,0])
     if cur_rad<min_rad:
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
-        print("Too close")
-        Tar_pos=T_pos+diff/np.linalg.norm(diff)*tar_rad
+        # print("Too close")
+        Tar_pos=T_pos+diff*[0,0,1]+diff*[1,1,0]/cur_rad*tar_rad
     #elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2):
     elif kahanP1((T_pos-Final_pos)*[1,1,0],(F_pos-Final_pos)*[1,1,0])<math.asin(min_rad/(tar_rad*math.cos(hov_ang))) and np.linalg.norm(diff_F*[1,1,0])>math.sqrt((tar_rad*math.cos(hov_ang))**2-min_rad**2):
         # if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
-        print("Intersecting")
+        # print("Intersecting")
         temp_vec=np.cross([0,0,1],offset)
         temp_vec=(np.dot(diff,temp_vec)/np.dot(temp_vec,temp_vec)*temp_vec)
         temp_vec=temp_vec/np.linalg.norm(temp_vec)
@@ -159,7 +159,6 @@ def pursue(pc, fdata, tdata):
     else:
         # if there is no collison issue the drone will go straight to the target point
         Tar_pos=Final_pos
-    print(Tar_pos)
     gotoLoc(pc,Tar_pos, T_yaw, fvel)
 
 # Function to go to location, used in pursuer and tracker
@@ -197,9 +196,9 @@ if __name__ == '__main__':
                     # required to give the logging time to initialize
                     time.sleep(2)
                     
-                    while True:
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
+                    # while True:
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
                     # Current states:
                     # Purerot
                     # backandforthy
@@ -306,12 +305,12 @@ if __name__ == '__main__':
                     temp_tar = tar_rad
                     # tar_rad = 0.6
                     print("Kahan Demonstration Test")
-                    gotoLoc(tpc, [-0.2, 0, 1], 0, tvel)
-                    time.sleep(5)
-                    gotoLoc(fpc, [-0.2+(tar_rad + 0.1), 0, 0.8 - (tar_rad+0.1)], 0, tvel)
-                    time.sleep(5)
-                    gotoLoc(tpc, [-0.2, 0, 0.8], 0, tvel)
-                    time.sleep(5)
+                    gotoLoc(tpc, [-0.2, 0, 1], 0, fvel)
+                    time.sleep(3)
+                    gotoLoc(fpc, [-0.2+(tar_rad + 0.1), 0.01, 0.8 - (tar_rad+0.1)], 0, fvel)
+                    time.sleep(3)
+                    gotoLoc(tpc, [-0.2, 0, 0.8], 0, fvel)
+                    time.sleep(3)
                     t = 0
                     ti = time.time()
                     while t < 5:
