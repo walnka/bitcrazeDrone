@@ -150,7 +150,10 @@ def pursue(pc, fdata, tdata):
     elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2): #and cur_rad<tar_rad:
         # if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
         # print("Intersecting")
-        Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
+        temp_vec=(rad_vec*[1,1,0])
+        temp_vec=temp_vec/np.linalg.norm(temp_vec)
+        Tar_pos=T_pos+rad_vec*[0,0,1]+temp_vec*(act_rad+tar_rad)
+        # Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
     else:
         # if there is no collison issue the drone will go straight to the target point
         Tar_pos=Final_pos
