@@ -21,7 +21,7 @@ urif = drone7
 # limits of form [-x,x,-y,y,-z,z]
 lims=[-0.9,.6,-.5,.6,.3,1.3] 
 # time to predict forward with velocity
-pred= 0.2
+pred= 0.4
 # chagnes the frequency of update commands and of the position logging
 freq=40
 # tracking drone velocity
@@ -146,7 +146,7 @@ def pursue(pc, fdata, tdata):
     if cur_rad<min_rad:
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
         # print("Too close")
-        Tar_pos=T_pos+diff/cur_rad*tar_rad
+        Tar_pos=T_pos+np.linalg.norm(diff)*tar_rad
     elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2): #and cur_rad<tar_rad:
         # if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
         # print("Intersecting")
@@ -181,13 +181,13 @@ if __name__ == '__main__':
     # ensures that both drones are connected and are able to be flown
     print("Setting up...")
     with SyncCrazyflie(urif, cf=Crazyflie(rw_cache='./cachef')) as fscf:
-        print("Flying Drone Connected...")
+        print("Follower Drone Connected...")
         with SyncCrazyflie(urit, cf=Crazyflie(rw_cache='./cachet')) as tscf:
             print("Tracking Drone Connected...")
             with PositionHlCommander(tscf, controller=PositionHlCommander.CONTROLLER_PID) as tpc:
-                print("Tracking Logger Initialized...")
+                print("Tracking Drone Taking Off...")
                 with PositionHlCommander(fscf, controller=PositionHlCommander.CONTROLLER_PID) as fpc:
-                    print("Flying Logger Initialized...")
+                    print("Follower Drone Taking Off...")
                     # starts the logging
                     simple_log_async_start(tscf, logt)
                     simple_log_async_start(fscf, logf)
@@ -322,7 +322,7 @@ if __name__ == '__main__':
 
                     while t<2:
                         t =time.time() - ti
-                        gotoLoc(tpc, [lims[1]-min_rad/2, 0, (lims[5]-lims[4])/2], 0, tvel)  #stays close to the edge-limit in x-dir, and in the middle of z lims
+                        gotoLoc(tpc, [lims[1]-min_rad, 0, (lims[5]-lims[4])/2], 0, tvel)  #stays close to the edge-limit in x-dir, and in the middle of z lims
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
                     time.sleep(3) 
@@ -332,7 +332,7 @@ if __name__ == '__main__':
                     w = math.pi*2/turn_time
                     while t<turn_time: #rotates two times
                         t =time.time() - ti
-                        gotoLoc(tpc, [lims[1]-min_rad/2, 0, (lims[5]-lims[4])/2-t/1000], (2*t*w), tvel) #rotates completely to push f-drone into the wall,
+                        gotoLoc(tpc, [lims[1]-min_rad, 0, (lims[5]-lims[4])/2-t/1000], (2*t*w), tvel) #rotates completely to push f-drone into the wall,
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
 
