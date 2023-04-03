@@ -14,14 +14,14 @@ drone5='radio://0/78/2M/E7E7E7E7E5'
 drone6='radio://0/79/2M/E7E7E7E7E6'
 drone7='radio://0/80/2M/E7E7E7E7E7'
 # URI that are actually used in the program
-urit = drone5
+urit = drone7
 urif = drone6
 # drone parameters
 # software bounds to keep the drone from hitting the net
 # limits of form [-x,x,-y,y,-z,z]
-lims=[-1,.7,-.6,.7,.3,1.4] 
+lims=[-0.9,.6,-.5,.6,.3,1.3] 
 # time to predict forward with velocity
-pred= .5
+pred= 0.2
 # chagnes the frequency of update commands and of the position logging
 freq=40
 # tracking drone velocity
@@ -31,7 +31,7 @@ fvel=1
 # radius of exclusion for drone pathfinding
 min_rad=.2
 # distance of the target position to the drone
-tar_rad=.3
+tar_rad=.35
 # angle between the horizon of the target drone and the flying drone
 hov_ang=math.pi/12
 # data logging required for persue
@@ -242,7 +242,7 @@ if __name__ == '__main__':
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
 
-                    moving in a circle with rotation
+                    # moving in a circle with rotation
                     goToHome()
                     print("Rotation in a Circle Test")
                     ti = time.time()
@@ -252,9 +252,9 @@ if __name__ == '__main__':
                         gotoLoc(tpc,[.2*math.sin(w*t)-0.3,.2*math.cos(w*t)+0.2,.5],2*t*w,tvel)
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
-                    after this it goes crazy
-         Tested Up to This Point           
-                    backAndForthY
+                    # after this it goes crazy
+         # Tested Up to This Point           
+                    # backAndForthY
                     goToHome()
                     print("Back and Forth Y Test")
                     t = 0
@@ -262,9 +262,9 @@ if __name__ == '__main__':
                     while t<8:
                         t=time.time()-ti
                         if math.floor(t) % 4 <2:
-                            gotoLoc(tpc,[0,.5,0.1],0,tvel)
+                            gotoLoc(tpc,[0.3,.5,0.1],0,tvel)
                         else:
-                            gotoLoc(tpc,[0,-0.5,0.1],0,tvel)
+                            gotoLoc(tpc,[0.3,-0.5,0.1],0,tvel)
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
                         
@@ -276,9 +276,9 @@ if __name__ == '__main__':
                     while t<16:
                         t=time.time()-ti
                         if math.floor(t) % 4 <2:
-                            gotoLoc(tpc,[0.2,0,0.1],0,tvel)
+                            gotoLoc(tpc,[0.2,0,0.1],0,tvel/2)
                         else:
-                            gotoLoc(tpc,[-0.8,0,0.1],0,tvel)
+                            gotoLoc(tpc,[-0.8,0,0.1],0,tvel/2)
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
 
@@ -295,35 +295,54 @@ if __name__ == '__main__':
                             gotoLoc(tpc,[0,0,0.3],0,tvel)
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
-                    
+
                     # kahandemonstration
-                    goToHome()    
+                    # goToHome()    
+                    # print("Kahan Demonstration Test")
+                    # t = 0
+                    # ti = time.time()
+                    # turn_time=0.8
+                    # pos_it= (math.sin(hov_ang) * tar_rad)/turn_time # height of f-drone above t-drone in turn_time steps
+                    # while t < turn_time: #turning and going upp - want to tweak this to be faster than f-drone reaction time
+                    #     t =time.time() - ti
+                    #     gotoLoc(tpc, [0, 0, 0.1+ t*pos_it], t*math.pi /turn_time, tvel) #possibly tweak tvel to get higher speed
+                    #     # pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
+                        
+                    # z_pos = t*pos_it
+                    # t = 0
+                    # ti = time.time()
+                    # atk_time= 0.5
+                    # while t< atk_time: #charging directly towards f-drone, assuming almost same height
+                    #     t =time.time() - ti
+                    #     gotoLoc(tpc, [t* tar_rad/atk_time, 0, z_pos], math.pi, tvel) #holds the old position in height and yaw, and charges the drone to trigger kahan- avoidance
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
+                    #     
+                    # while t< 15: #gives time for the drone to do kahan, and stays in place some time after, change to lowert amount if new demo after
+                    #     t =time.time() - ti
+                    #     gotoLoc(tpc, [tar_rad, 0, z_pos], math.pi, tvel)
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
+                    
+                    # Kahan demo 2
+                    goToHome()
+                    temp_tar = tar_rad
+                    tar_rad = 0.6
                     print("Kahan Demonstration Test")
+                    gotoLoc(tpc, [-0.2, 0, 1], 0, tvel)
+                    time.sleep(5)
+                    gotoLoc(fpc, [-0.2+(tar_rad + 0.1), 0, 0.8 - (tar_rad+0.1)], 0, tvel)
+                    time.sleep(5)
+                    gotoLoc(tpc, [-0.2, 0, 0.8], 0, tvel)
+                    time.sleep(5)
                     t = 0
                     ti = time.time()
-                    turn_time=0.8
-                    pos_it= (math.sin(hov_ang) * tar_rad)/turn_time # height of f-drone above t-drone in turn_time steps
-                    while t < turn_time: #turning and going upp - want to tweak this to be faster than f-drone reaction time
-                        t =time.time() - ti
-                        gotoLoc(tpc, [0, 0, 0.1+ t*pos_it], t*math.pi /turn_time, tvel) #possibly tweak tvel to get higher speed
-                        # pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
-                        
-                    z_pos = t*pos_it
-                    t = 0
-                    ti = time.time()
-                    atk_time= 0.5
-                    while t< atk_time: #charging directly towards f-drone, assuming almost same height
-                        t =time.time() - ti
-                        gotoLoc(fpc, [t* tar_rad/atk_time, 0, z_pos], math.pi, tvel) #holds the old position in height and yaw, and charges the drone to trigger kahan- avoidance
+                    while t < 5:
+                        t = time.time() - ti
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
-                        
-                    while t< 15: #gives time for the drone to do kahan, and stays in place some time after, change to lowert amount if new demo after
-                        t =time.time() - ti
-                        gotoLoc(fpc, [tar_rad, 0, z_pos], math.pi, tvel)
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
+                    tar_rad = temp_tar
 
 
                     # boundarydemonstration
@@ -334,16 +353,18 @@ if __name__ == '__main__':
 
                     while t<2:
                         t =time.time() - ti
-                        gotoLoc(fpc, [lims[1]-min_rad/2, 0, (lims[5]-lims[4])/2], 0, tvel)  #stays close to the edge-limit in x-dir, and in the middle of z lims
+                        gotoLoc(tpc, [lims[1]-min_rad/2, 0, (lims[5]-lims[4])/2], 0, tvel)  #stays close to the edge-limit in x-dir, and in the middle of z lims
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
-                        
+                    time.sleep(3) 
                     t = 0
                     ti = time.time()
-                    turn_time = 3
-                    while t<turn_time*2: #rotates two times
+                    turn_time = 10.0
+                    w = math.pi*2/turn_time
+                    while t<turn_time: #rotates two times
                         t =time.time() - ti
-                        gotoLoc(fpc, [lims[1]-min_rad/2, 0, lims[5]/2], t*math.pi*2 /turn_time, tvel) #rotates completely to push f-drone into the wall,
+                        print(t*math.pi*2 / turn_time)
+                        gotoLoc(tpc, [lims[1]-min_rad/2, 0, (lims[5]-lims[4])/2], (2*t*w), tvel) #rotates completely to push f-drone into the wall,
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
 
@@ -351,13 +372,14 @@ if __name__ == '__main__':
                     ti = time.time()
                     while t<3: #go back to middle
                         t =time.time() - ti
-                        gotoLoc(fpc, [0, 0, lims[5]/2], 0, tvel) #rotates completely to push f-drone into the wall,
+                        gotoLoc(tpc, [0, 0, lims[5]/2], 0, tvel) #rotates completely to push f-drone into the wall,
                         pursue(fpc, logf.data, logt.data)
                         time.sleep(1/freq)
                         
                     goToHome()
                     print("All Tests Finished")    
                     # want to land now
+                    
 
 
 
