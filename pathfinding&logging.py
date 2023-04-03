@@ -19,21 +19,21 @@ urif = drone7
 # drone parameters
 # software bounds to keep the drone from hitting the net
 # limits of form [-x,x,-y,y,-z,z]
-lims=[-0.9,.6,-.5,.6,.3,1.3] 
+lims=[-0.9,.6,-.5,.6,.4,1.3] 
 # time to predict forward with velocity
-pred= 0.4
+pred= 0
 # chagnes the frequency of update commands and of the position logging
 freq=40
 # tracking drone velocity
 tvel=.2
 # flying drone velocity
-fvel=1
+fvel=.5
 # radius of exclusion for drone pathfinding
 min_rad=.2
 # distance of the target position to the drone
 tar_rad=.35
 # angle between the horizon of the target drone and the flying drone
-hov_ang=math.pi/12
+hov_ang=math.pi/6
 # data logging required for persue
 logt = LogConfig(name='Stabilizer', period_in_ms=1000/freq)
 logt.add_variable('stateEstimateZ.x', 'int16_t')
@@ -145,18 +145,21 @@ def pursue(pc, fdata, tdata):
     cur_rad=np.linalg.norm(diff)
     if cur_rad<min_rad:
         #if the flying drone is currently too close to the tracking drone it will move away in the shortest path until it can use another pathing method to get around
-        # print("Too close")
-        Tar_pos=T_pos+np.linalg.norm(diff)*tar_rad
-    elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2): #and cur_rad<tar_rad:
+        print("Too close")
+        Tar_pos=T_pos+diff/np.linalg.norm(diff)*tar_rad
+    #elif kahanP1(T_pos-Final_pos,F_pos-Final_pos)<math.asin(min_rad/tar_rad) and np.linalg.norm(diff_F)>math.sqrt(tar_rad**2-min_rad**2):
+    elif kahanP1((T_pos-Final_pos)*[1,1,0],(F_pos-Final_pos)*[1,1,0])<math.asin(min_rad/(tar_rad*math.cos(hov_ang))) and np.linalg.norm(diff_F*[1,1,0])>math.sqrt((tar_rad*math.cos(hov_ang))**2-min_rad**2):
         # if the path goes to close to the tracking drone it creates a path that goes around the drone. not the shortest path but will go around the tracking drone in the shortest direction
-        # print("Intersecting")
-        temp_vec=(rad_vec*[1,1,0])
+        print("Intersecting")
+        temp_vec=np.cross([0,0,1],offset)
+        temp_vec=(np.dot(diff,temp_vec)/np.dot(temp_vec,temp_vec)*temp_vec)
         temp_vec=temp_vec/np.linalg.norm(temp_vec)
-        Tar_pos=T_pos+rad_vec*[0,0,1]+temp_vec*(act_rad+tar_rad)
+        Tar_pos=T_pos+rad_vec*[0,0,1]+temp_vec*tar_rad
         # Tar_pos=T_pos+rad_vec*(act_rad+tar_rad)/act_rad
     else:
         # if there is no collison issue the drone will go straight to the target point
         Tar_pos=Final_pos
+    print(Tar_pos)
     gotoLoc(pc,Tar_pos, T_yaw, fvel)
 
 # Function to go to location, used in pursuer and tracker
@@ -165,7 +168,7 @@ def gotoLoc(pc,pos,yaw,v):
     pc.go_to(pos[0],pos[1],pos[2],yaw,v)
 
 def goToHome():
-    timeToTake = 3;
+    timeToTake = 3
     t = 0
     ti = time.time()
     while t<timeToTake:
@@ -193,7 +196,10 @@ if __name__ == '__main__':
                     simple_log_async_start(fscf, logf)
                     # required to give the logging time to initialize
                     time.sleep(2)
-                           
+                    
+                    while True:
+                        pursue(fpc, logf.data, logt.data)
+                        time.sleep(1/freq)
                     # Current states:
                     # Purerot
                     # backandforthy
@@ -204,101 +210,101 @@ if __name__ == '__main__':
                     
                     print("Starting Tests")
                     # too close test
-                    goToHome()
-                    print("Too Close Test")
-                    t = 0
-                    ti = time.time()
-                    while t<3:
-                        t=time.time()-ti
-                        gotoLoc(tpc,[0,0,0.6],0,fvel)
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
-                    temp_min = min_rad
-                    min_rad = 0.5
-                    temp_tar = tar_rad
-                    tar_rad = 0.6
-                    gotoLoc(tpc,[0,.5,0.6],0,tvel)
-                    time.sleep(3)
-                    gotoLoc(fpc,[0,0.3,0.6],0,tvel)
-                    time.sleep(3)
-                    t = 0
-                    ti = time.time()
-                    while t<5:
-                        t=time.time()-ti
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
-                    min_rad = temp_min
-                    tar_rad = temp_tar
+                    # goToHome()
+                    # print("Too Close Test")
+                    # t = 0
+                    # ti = time.time()
+                    # while t<3:
+                    #     t=time.time()-ti
+                    #     gotoLoc(tpc,[0,0,0.6],0,fvel)
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
+                    # temp_min = min_rad
+                    # min_rad = 0.5
+                    # temp_tar = tar_rad
+                    # tar_rad = 0.6
+                    # gotoLoc(tpc,[0,.5,0.6],0,tvel)
+                    # time.sleep(3)
+                    # gotoLoc(fpc,[0,0.3,0.6],0,tvel)
+                    # time.sleep(3)
+                    # t = 0
+                    # ti = time.time()
+                    # while t<5:
+                    #     t=time.time()-ti
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
+                    # min_rad = temp_min
+                    # tar_rad = temp_tar
 
                     # pureRot
-                    goToHome()
-                    print("Pure Rotation Test")
-                    w=2*math.pi/10
-                    t = 0
-                    ti = time.time()
-                    while t<10:
-                        t=time.time()-ti
-                        gotoLoc(tpc,[0,0,0.5-t/1000],2*t*w,tvel)
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
+                    # goToHome()
+                    # print("Pure Rotation Test")
+                    # w=2*math.pi/10
+                    # t = 0
+                    # ti = time.time()
+                    # while t<10:
+                    #     t=time.time()-ti
+                    #     gotoLoc(tpc,[0,0,0.5-t/1000],2*t*w,tvel)
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
 
                     # moving in a circle with rotation
-                    goToHome()
-                    print("Rotation in a Circle Test")
-                    ti = time.time()
-                    t=0
-                    while t<20:
-                        t=time.time()-ti
-                        gotoLoc(tpc,[.2*math.sin(w*t)-0.3,.2*math.cos(w*t)+0.2,.5],2*t*w,tvel)
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
+                    # goToHome()
+                    # print("Rotation in a Circle Test")
+                    # ti = time.time()
+                    # t=0
+                    # while t<20:
+                    #     t=time.time()-ti
+                    #     gotoLoc(tpc,[.2*math.sin(w*t)-0.3,.2*math.cos(w*t)+0.2,.5],2*t*w,tvel)
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
              
                     # backAndForthY
-                    goToHome()
-                    print("Back and Forth Y Test")
-                    t = 0
-                    ti = time.time()
-                    while t<8:
-                        t=time.time()-ti
-                        if math.floor(t) % 4 <2:
-                            gotoLoc(tpc,[0.3,.5,0.1],0,tvel)
-                        else:
-                            gotoLoc(tpc,[0.3,-0.5,0.1],0,tvel)
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
+                    # goToHome()
+                    # print("Back and Forth Y Test")
+                    # t = 0
+                    # ti = time.time()
+                    # while t<16:
+                    #     t=time.time()-ti
+                    #     if math.floor(t) % 8 < 4:
+                    #         gotoLoc(tpc,[0.3,.5,0.1],0,tvel)
+                    #     else:
+                    #         gotoLoc(tpc,[0.3,-0.5,0.1],0,tvel)
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
                         
                     # backAndForthX
-                    goToHome()    
-                    print("Back and Forth X Test")
-                    t = 0
-                    ti = time.time()
-                    while t<16:
-                        t=time.time()-ti
-                        if math.floor(t) % 4 <2:
-                            gotoLoc(tpc,[0.2,0,0.1],0,tvel/2)
-                        else:
-                            gotoLoc(tpc,[-0.8,0,0.1],0,tvel/2)
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
+                    # goToHome()    
+                    # print("Back and Forth X Test")
+                    # t = 0
+                    # ti = time.time()
+                    # while t<16:
+                    #     t=time.time()-ti
+                    #     if math.floor(t) % 8 < 4:
+                    #         gotoLoc(tpc,[0.2,0,0.1],0,tvel/2)
+                    #     else:
+                    #         gotoLoc(tpc,[-0.8,0,0.1],0,tvel/2)
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
 
                     # upAndDown
-                    goToHome()    
-                    print("Up and Down Test")
-                    t = 0
-                    ti = time.time()
-                    while t<16:
-                        t=time.time()-ti
-                        if math.floor(t) % 4 <2:
-                            gotoLoc(tpc,[0,0,1.2],0,tvel)
-                        else:
-                            gotoLoc(tpc,[0,0,0.3],0,tvel)
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
+                    # goToHome()    
+                    # print("Up and Down Test")
+                    # t = 0
+                    # ti = time.time()
+                    # while t<16:
+                    #     t=time.time()-ti
+                    #     if math.floor(t) % 8 < 4:
+                    #         gotoLoc(tpc,[0,0,1.2],0,tvel)
+                    #     else:
+                    #         gotoLoc(tpc,[0,0,0.3],0,tvel)
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
 
                     # Kahan demo
                     goToHome()
                     temp_tar = tar_rad
-                    tar_rad = 0.6
+                    # tar_rad = 0.6
                     print("Kahan Demonstration Test")
                     gotoLoc(tpc, [-0.2, 0, 1], 0, tvel)
                     time.sleep(5)
@@ -315,34 +321,34 @@ if __name__ == '__main__':
 
 
                     # boundarydemonstration
-                    goToHome() #going to home position
-                    print("Boundary Demonstration Test")
-                    t = 0
-                    ti = time.time()
+                    # goToHome() #going to home position
+                    # print("Boundary Demonstration Test")
+                    # t = 0
+                    # ti = time.time()
 
-                    while t<2:
-                        t =time.time() - ti
-                        gotoLoc(tpc, [lims[1]-min_rad, 0, (lims[5]-lims[4])/2], 0, tvel)  #stays close to the edge-limit in x-dir, and in the middle of z lims
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
-                    time.sleep(3) 
-                    t = 0
-                    ti = time.time()
-                    turn_time = 10.0
-                    w = math.pi*2/turn_time
-                    while t<turn_time: #rotates two times
-                        t =time.time() - ti
-                        gotoLoc(tpc, [lims[1]-min_rad, 0, (lims[5]-lims[4])/2-t/1000], (2*t*w), tvel) #rotates completely to push f-drone into the wall,
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
+                    # while t<2:
+                    #     t =time.time() - ti
+                    #     gotoLoc(tpc, [lims[1]-min_rad, 0, (lims[5]-lims[4])/2], 0, tvel)  #stays close to the edge-limit in x-dir, and in the middle of z lims
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
+                    # time.sleep(3) 
+                    # t = 0
+                    # ti = time.time()
+                    # turn_time = 10.0
+                    # w = math.pi*2/turn_time
+                    # while t<turn_time: #rotates two times
+                    #     t =time.time() - ti
+                    #     gotoLoc(tpc, [lims[1]-min_rad, 0, (lims[5]-lims[4])/2-t/1000], (2*t*w), tvel) #rotates completely to push f-drone into the wall,
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
 
-                    t = 0
-                    ti = time.time()
-                    while t<3: #go back to middle
-                        t =time.time() - ti
-                        gotoLoc(tpc, [0, 0, lims[5]/2], 0, tvel) #rotates completely to push f-drone into the wall,
-                        pursue(fpc, logf.data, logt.data)
-                        time.sleep(1/freq)
+                    # t = 0
+                    # ti = time.time()
+                    # while t<3: #go back to middle
+                    #     t =time.time() - ti
+                    #     gotoLoc(tpc, [0, 0, lims[5]/2], 0, tvel) #rotates completely to push f-drone into the wall,
+                    #     pursue(fpc, logf.data, logt.data)
+                    #     time.sleep(1/freq)
                         
                     tar_rad = temp_tar
                     goToHome()
