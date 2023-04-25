@@ -162,7 +162,7 @@ def pursue(pc, fdata, tdata):
         # if there is no collison issue the drone will go straight to the target point
         Tar_pos=Final_pos
     gotoLoc(pc,Tar_pos, T_yaw, fvel)
-
+    return (T_pos+offset)
 # Function to go to location, used in pursuer and tracker
 def gotoLoc(pc,pos,yaw,v):
     pos = oobounds(pos)
@@ -232,9 +232,9 @@ if __name__ == '__main__':
                         while t<3:
                             t=time.time()-ti
                             gotoLoc(tpc,[0,0,0.6],0,fvel)
-                            pursue(fpc, logf.data, logt.data)
+                            tarPos = pursue(fpc, logf.data, logt.data)
                             # recordData(toocloseData, logf.data, logt.data)
-                            writer.writerow([logf.data[0], logf.data[1], logf.data[2], logf.data[3], logt.data[0], logt.data[1], logt.data[2], logt.data[3]])
+                            writer.writerow([tarPos[0], tarPos[1], tarPos[2], logt.data[3], logf.data[0], logf.data[1], logf.data[2], logf.data[3]])
                             time.sleep(1/freq)
                         temp_min = min_rad
                         min_rad = 0.5
@@ -248,9 +248,9 @@ if __name__ == '__main__':
                         ti = time.time()
                         while t<5:
                             t=time.time()-ti
-                            pursue(fpc, logf.data, logt.data)
+                            tarPos = pursue(fpc, logf.data, logt.data)
                             # recordData(toocloseData, logf.data, logt.data)
-                            writer.writerow([logf.data[0], logf.data[1], logf.data[2], logf.data[3], logt.data[0], logt.data[1], logt.data[2], logt.data[3]])
+                            writer.writerow([tarPos[0], tarPos[1], tarPos[2], logt.data[3], logf.data[0], logf.data[1], logf.data[2], logf.data[3]])
                             time.sleep(1/freq)
                         min_rad = temp_min
                         tar_rad = temp_tar
