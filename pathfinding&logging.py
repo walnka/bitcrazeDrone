@@ -9,6 +9,8 @@ from position_hl_commander import PositionHlCommander
 from cflib.utils import uri_helper
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncLogger import SyncLogger
+import csv
+
 # URI for each of the drones
 drone5='radio://0/78/2M/E7E7E7E7E5'
 drone6='radio://0/79/2M/E7E7E7E7E6'
@@ -176,7 +178,16 @@ def goToHome():
         pursue(fpc, logf.data, logt.data)
         time.sleep(1/freq)
 
-    
+def startRecordingData(filename):
+    filepath = filename + '.csv' #'TestResults/' + filename + '.csv'
+    with open(filepath, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Xt", "Yt", "Zt", "THETAt", "Xf", "Yf", "Zf", "THETAf"])
+        return writer
+
+def recordData(writer, fdata, tdata):
+    writer.writerow([fdata[0], fdata[1], fdata[2], fdata[3], tdata[0], tdata[1], tdata[2], tdata[3]])
+
 if __name__ == '__main__':
     # Initialize the low-level drivers
     cflib.crtp.init_drivers()
@@ -209,31 +220,40 @@ if __name__ == '__main__':
                     
                     print("Starting Tests")
                     # too close test
-                    # goToHome()
-                    # print("Too Close Test")
-                    # t = 0
-                    # ti = time.time()
-                    # while t<3:
-                    #     t=time.time()-ti
-                    #     gotoLoc(tpc,[0,0,0.6],0,fvel)
-                    #     pursue(fpc, logf.data, logt.data)
-                    #     time.sleep(1/freq)
-                    # temp_min = min_rad
-                    # min_rad = 0.5
-                    # temp_tar = tar_rad
-                    # tar_rad = 0.6
-                    # gotoLoc(tpc,[0,.5,0.6],0,tvel)
-                    # time.sleep(3)
-                    # gotoLoc(fpc,[0,0.3,0.6],0,tvel)
-                    # time.sleep(3)
-                    # t = 0
-                    # ti = time.time()
-                    # while t<5:
-                    #     t=time.time()-ti
-                    #     pursue(fpc, logf.data, logt.data)
-                    #     time.sleep(1/freq)
-                    # min_rad = temp_min
-                    # tar_rad = temp_tar
+                    goToHome()
+                    print("Too Close Test")
+                    # toocloseData = startRecordingData("TooCloseTest")
+
+                    with open('TooCloseTest.csv', 'w', newline='') as file:
+                        writer = csv.writer(file)
+                        writer.writerow(["Xt", "Yt", "Zt", "THETAt", "Xf", "Yf", "Zf", "THETAf"])
+                        t = 0
+                        ti = time.time()
+                        while t<3:
+                            t=time.time()-ti
+                            gotoLoc(tpc,[0,0,0.6],0,fvel)
+                            pursue(fpc, logf.data, logt.data)
+                            # recordData(toocloseData, logf.data, logt.data)
+                            writer.writerow([logf.data[0], logf.data[1], logf.data[2], logf.data[3], logt.data[0], logt.data[1], logt.data[2], logt.data[3]])
+                            time.sleep(1/freq)
+                        temp_min = min_rad
+                        min_rad = 0.5
+                        temp_tar = tar_rad
+                        tar_rad = 0.6
+                        gotoLoc(tpc,[0,.5,0.6],0,tvel)
+                        time.sleep(3)
+                        gotoLoc(fpc,[0,0.3,0.6],0,tvel)
+                        time.sleep(3)
+                        t = 0
+                        ti = time.time()
+                        while t<5:
+                            t=time.time()-ti
+                            pursue(fpc, logf.data, logt.data)
+                            # recordData(toocloseData, logf.data, logt.data)
+                            writer.writerow([logf.data[0], logf.data[1], logf.data[2], logf.data[3], logt.data[0], logt.data[1], logt.data[2], logt.data[3]])
+                            time.sleep(1/freq)
+                        min_rad = temp_min
+                        tar_rad = temp_tar
 
                     # pureRot
                     # goToHome()
