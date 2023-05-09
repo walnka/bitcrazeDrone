@@ -55,14 +55,6 @@ logf.add_variable('stateEstimateZ.x', 'int16_t')
 logf.add_variable('stateEstimateZ.y', 'int16_t')
 logf.add_variable('stateEstimateZ.z', 'int16_t')
 logf.add_variable('stateEstimate.yaw', 'FP16')
-# logf.add_variable('stateEstimateZ.vx', 'int16_t')
-# logf.add_variable('stateEstimateZ.vy', 'int16_t')
-# logf.add_variable('stateEstimateZ.vz', 'int16_t')
-# logf.add_variable('stateEstimateZ.rateYaw', 'int16_t')
-# logf.add_variable('stateEstimateZ.ax', 'int16_t')
-# logf.add_variable('stateEstimateZ.ay', 'int16_t')
-# logf.add_variable('stateEstimateZ.az', 'int16_t')
-#add other variables to be logged below
 
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
