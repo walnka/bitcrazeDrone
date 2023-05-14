@@ -1,5 +1,5 @@
 # BitcrazeDrone Following Program
-This Repository Includes all Scripts used to run 2 bitcraze drones in a cat and mouse configuration where one follows the other. This repository still requires the CFLib and CFClient repositories from Crazy Flie.
+This Repository Includes all Scripts used to run 2 bitcraze drones in a cat and mouse configuration where one follows the other. The python packages required  to run this repository are listed in the requirements.txt file.
 
 ## position_hl_commander.py
 This script is a modified version of the standard one found in the cflib but with the following changes:
